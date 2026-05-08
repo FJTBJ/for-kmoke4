@@ -1,0 +1,5 @@
+{
+  "name": "Remix: 剧本-镜头关联时间线编辑器",
+  "description": "专业的视频剪辑时间线界面，支持剧本场次与拍摄镜头的层级映射及下钻查看。",
+  "requestFramePermissions": []
+}
