@@ -8,7 +8,7 @@ import { ShotAssetManager } from './components/ShotAssetManager';
 import { AssetLandingPage } from './components/AssetLandingPage';
 import { GlobalPlayer } from './components/GlobalPlayer';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronRight, Play, SkipBack, SkipForward, ZoomIn, ZoomOut, Layers, Film, ArrowLeft, Info, ChevronDown, ChevronRight as ChevronRightIcon, Box, CheckCircle2, Clock, Zap, BarChart3, Pause, Lock, AlertTriangle, Calendar, User, TrendingUp, LayoutGrid, List, Kanban, ExternalLink, Search, X, Settings, Plus } from 'lucide-react';
+import { ChevronRight, Play, SkipBack, SkipForward, ZoomIn, ZoomOut, Layers, Film, ArrowLeft, Info, ChevronDown, ChevronRight as ChevronRightIcon, Box, CheckCircle2, Clock, Zap, BarChart3, Pause, Lock, AlertTriangle, Calendar, User, TrendingUp, LayoutGrid, List, Kanban, ExternalLink, Search, X, Settings, Plus, Database } from 'lucide-react';
 import { cn } from './lib/utils';
 
 export default function App() {
@@ -18,10 +18,10 @@ export default function App() {
   const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
   const [selectedAssetScene, setSelectedAssetScene] = useState<Scene | null>(null);
   const [selectedInspectorScene, setSelectedInspectorScene] = useState<Scene | null>(MOCK_EPISODES[0].versions[0].scenes[0]);
-  const [activeMainTab, setActiveMainTab] = useState<'player' | 'details'>('player');
-  const [activeInspectorTab, setActiveInspectorTab] = useState<'script' | 'assets' | 'callsheet' | 'shots' | 'previz'>('script');
-  const [shotsViewMode, setShotsViewMode] = useState<'card' | 'list' | 'board'>('list');
-  const [assetViewMode, setAssetViewMode] = useState<'card' | 'list' | 'board'>('card');
+  const [activeInspectorTab, setActiveInspectorTab] = useState<'script' | 'assets' | 'callsheet'>('script');
+  const [assetViewMode, setAssetViewMode] = useState<'card' | 'list' | 'board'>('list');
+  const [assetSubTab, setAssetSubTab] = useState<'digital' | 'tasks'>('digital');
+  const [taskViewMode, setTaskViewMode] = useState<'card' | 'list' | 'board'>('list');
   const [expandedEpisodes, setExpandedEpisodes] = useState<string[]>([MOCK_EPISODES[0].id]);
   const [isLegendExpanded, setIsLegendExpanded] = useState(false);
   const [detailLevel, setDetailLevel] = useState<'overview' | 'management'>('management');
@@ -34,7 +34,6 @@ export default function App() {
     setCustomViews(prev => [...prev, newView]);
     setTimelineViewMode(newView.id);
   };
-  const [playerTab, setPlayerTab] = useState<'edit' | 'storyboard' | 'ai'>('edit');
   const [selectedAsset, setSelectedAsset] = useState<{asset: SceneAsset, scene: Scene} | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResultCount, setSearchResultCount] = useState<number | null>(null);
@@ -604,7 +603,6 @@ export default function App() {
                                 onDoubleClick={handleSceneDoubleClick}
                                 onClick={(s) => {
                                   setSelectedInspectorScene(s);
-                                  setActiveMainTab('details');
                                 }}
                                 onAssetClick={handleAssetClick}
                                 scale={scale}
@@ -632,34 +630,17 @@ export default function App() {
                   <div className="p-8 flex flex-col bg-[#0a0a0a]">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-8">
-                        <div className="flex bg-[#1a1a1a] p-1 rounded-lg border border-[#333]">
-                          <button
-                            onClick={() => setActiveMainTab('player')}
-                            className={cn(
-                              "px-6 py-2 rounded-md text-xs font-bold transition-all uppercase tracking-wider flex items-center gap-2",
-                              activeMainTab === 'player' 
-                                ? "bg-blue-600 text-white shadow-lg" 
-                                : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
-                            )}
-                          >
-                            <Play size={14} fill={activeMainTab === 'player' ? "currentColor" : "none"} />
-                            播放器
-                          </button>
-                          <button
-                            onClick={() => setActiveMainTab('details')}
-                            className={cn(
-                              "px-6 py-2 rounded-md text-xs font-bold transition-all uppercase tracking-wider flex items-center gap-2",
-                              activeMainTab === 'details' 
-                                ? "bg-blue-600 text-white shadow-lg" 
-                                : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
-                            )}
-                          >
-                            <Layers size={14} />
-                            详情
-                          </button>
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400">
+                            <Info size={16} />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-bold text-white tracking-tight">场次详情</h3>
+                            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Scene Information</p>
+                          </div>
                         </div>
 
-                        {activeMainTab === 'details' && selectedInspectorScene && (
+                        {selectedInspectorScene && (
                           <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full animate-in fade-in slide-in-from-left-2">
                             <span className="text-xs font-bold text-blue-400">{selectedInspectorScene.sceneNumber}</span>
                             <span className="text-xs text-white">{selectedInspectorScene.title}</span>
@@ -667,65 +648,27 @@ export default function App() {
                         )}
                       </div>
                       
-                      {activeMainTab === 'details' && (
-                        <div className="flex bg-[#1a1a1a]/50 p-1 rounded-lg border border-white/5">
-                          {(['script', 'assets', 'callsheet', 'previz', 'shots'] as const).map((tab) => (
-                            <button
-                              key={tab}
-                              onClick={() => setActiveInspectorTab(tab)}
-                              className={cn(
-                                "px-4 py-1.5 rounded-md text-[10px] font-bold transition-all uppercase tracking-widest",
-                                activeInspectorTab === tab 
-                                  ? "text-blue-400 bg-blue-500/10" 
-                                  : "text-gray-500 hover:text-gray-300"
-                              )}
-                            >
-                              {tab === 'script' ? '剧本' : tab === 'assets' ? '资产' : tab === 'callsheet' ? '通告' : tab === 'previz' ? '场记' : '镜头'}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                      <div className="flex bg-[#1a1a1a]/50 p-1 rounded-lg border border-white/5">
+                        {(['script', 'assets', 'callsheet'] as const).map((tab) => (
+                          <button
+                            key={tab}
+                            onClick={() => setActiveInspectorTab(tab)}
+                            className={cn(
+                              "px-4 py-1.5 rounded-md text-[10px] font-bold transition-all uppercase tracking-widest",
+                              activeInspectorTab === tab 
+                                ? "text-blue-400 bg-blue-500/10" 
+                                : "text-gray-500 hover:text-gray-300"
+                            )}
+                          >
+                            {tab === 'script' ? '剧本' : tab === 'assets' ? '资产' : '通告'}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="min-h-[450px] bg-[#141414] border border-[#222] rounded-xl overflow-hidden flex flex-col">
-                      {activeMainTab === 'player' && (
-                        <div className="flex bg-[#1a1a1a] p-1 border-b border-[#222] shrink-0">
-                          {(['edit', 'storyboard', 'ai'] as const).map((tab) => (
-                            <button
-                              key={tab}
-                              onClick={() => setPlayerTab(tab)}
-                              className={cn(
-                                "px-4 py-1.5 rounded-md text-[10px] font-bold transition-all uppercase tracking-widest",
-                                playerTab === tab 
-                                  ? "text-blue-400 bg-blue-500/10" 
-                                  : "text-gray-500 hover:text-gray-300"
-                              )}
-                            >
-                              {tab === 'edit' ? '剪辑时间线' : tab === 'storyboard' ? 'Moke故事板' : 'Ai粗剪视频'}
-                            </button>
-                          ))}
-                        </div>
-                      )}
                       <AnimatePresence mode="wait">
-                        {activeMainTab === 'player' ? (
-                          <motion.div
-                            key={`global-player-${playerTab}`}
-                            initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.98 }}
-                            className="h-full"
-                          >
-                            <GlobalPlayer 
-                              scenes={scenes}
-                              playheadPosition={playheadPosition}
-                              setPlayheadPosition={setPlayheadPosition}
-                              isPlaying={isPlaying}
-                              setIsPlaying={setIsPlaying}
-                              totalDuration={totalDuration}
-                              mode={playerTab}
-                            />
-                          </motion.div>
-                        ) : selectedInspectorScene ? (
+                        {selectedInspectorScene ? (
                           <div className="flex-1 flex flex-col">
                             {/* Tab Content */}
                             <div className="flex-1 p-8">
@@ -756,201 +699,6 @@ export default function App() {
                                   </motion.div>
                                 )}
 
-                                {activeInspectorTab === 'shots' && (
-                                  <motion.div
-                                    key="shots"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    className="space-y-6"
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400">
-                                          <Film size={20} />
-                                        </div>
-                                        <div>
-                                          <h4 className="text-sm font-bold text-white">镜头库</h4>
-                                          <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">SHOTS FOR {selectedInspectorScene.sceneNumber}</p>
-                                        </div>
-                                      </div>
-                                      
-                                      <div className="flex items-center gap-2 bg-[#1a1a1a] p-1 rounded-lg border border-[#333]">
-                                        <button 
-                                          onClick={() => setShotsViewMode('list')}
-                                          className={cn(
-                                            "p-1.5 rounded transition-all",
-                                            shotsViewMode === 'list' ? "bg-blue-600 text-white" : "text-gray-500 hover:text-gray-300"
-                                          )}
-                                        >
-                                          <List size={14} />
-                                        </button>
-                                        <button 
-                                          onClick={() => setShotsViewMode('card')}
-                                          className={cn(
-                                            "p-1.5 rounded transition-all",
-                                            shotsViewMode === 'card' ? "bg-blue-600 text-white" : "text-gray-500 hover:text-gray-300"
-                                          )}
-                                        >
-                                          <LayoutGrid size={14} />
-                                        </button>
-                                      </div>
-                                    </div>
-
-                                    {shotsViewMode === 'card' && (
-                                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {selectedInspectorScene.shots.map((shot, idx) => (
-                                          <div 
-                                            key={shot.id} 
-                                            className="group bg-[#1a1a1a] border border-[#222] hover:border-blue-500/50 rounded-xl overflow-hidden transition-all duration-300 flex flex-col cursor-pointer"
-                                          >
-                                            <div className="relative aspect-video bg-black/40 overflow-hidden">
-                                              <img 
-                                                src={shot.thumbnail} 
-                                                alt={shot.name} 
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                referrerPolicy="no-referrer"
-                                              />
-                                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-                                              <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 rounded text-[9px] font-bold text-blue-400 border border-blue-500/30">
-                                                #{idx + 1}
-                                              </div>
-                                              <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between">
-                                                <span className="text-[10px] font-bold text-white truncate max-w-[120px]">{shot.name}</span>
-                                                <span className="text-[9px] font-mono text-gray-400 bg-black/40 px-1.5 py-0.5 rounded">
-                                                  {Math.floor(shot.duration / 60)}:{(shot.duration % 60).toString().padStart(2, '0')}
-                                                </span>
-                                              </div>
-                                            </div>
-                                            <div className="p-3 flex items-center justify-between bg-[#1f1f1f]/30">
-                                              <div className="flex items-center gap-3">
-                                                <div className="flex flex-col">
-                                                  <span className="text-[8px] text-gray-500 uppercase font-bold tracking-wider">景别</span>
-                                                  <span className="text-[11px] text-gray-200 font-medium">{shot.type}</span>
-                                                </div>
-                                                <div className="w-[1px] h-4 bg-white/5" />
-                                                <div className="flex flex-col">
-                                                  <span className="text-[8px] text-gray-500 uppercase font-bold tracking-wider">渲染状态</span>
-                                                  <span className={cn(
-                                                    "text-[10px] font-bold",
-                                                    shot.status === '已完成' || shot.status === '已渲染' ? "text-emerald-400" :
-                                                    shot.status === '进行中' ? "text-blue-400" : "text-gray-500"
-                                                  )}>
-                                                    {shot.status || '待处理'}
-                                                  </span>
-                                                </div>
-                                              </div>
-                                              <button className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white transition-all">
-                                                <Play size={12} fill="currentColor" className="ml-0.5" />
-                                              </button>
-                                            </div>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
-
-                                    {shotsViewMode === 'list' && (
-                                      <div className="bg-[#1a1a1a] border border-[#222] rounded-xl overflow-hidden">
-                                        <table className="w-full text-left border-collapse">
-                                          <thead>
-                                            <tr className="border-b border-[#222] bg-[#1f1f1f]/50">
-                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[60px]">序号</th>
-                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">镜头号</th>
-                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">素材名</th>
-                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">开始帧</th>
-                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">结束帧</th>
-                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">帧长</th>
-                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">状态</th>
-                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">步骤</th>
-                                            </tr>
-                                          </thead>
-                                          <tbody className="divide-y divide-[#222]">
-                                            {selectedInspectorScene.shots.map((shot, idx) => {
-                                              const fps = 24;
-                                              const startFrame = Math.floor(shot.startTime * fps);
-                                              const frameCount = Math.floor(shot.duration * fps);
-                                              const endFrame = startFrame + frameCount;
-                                              
-                                              return (
-                                                <tr key={shot.id} className="hover:bg-white/5 transition-colors group cursor-pointer text-xs">
-                                                  <td className="px-4 py-3 text-[10px] font-mono text-gray-500">{(idx + 1).toString().padStart(2, '0')}</td>
-                                                  <td className="px-4 py-3 font-mono text-blue-400 font-bold">{shot.shortName || shot.name.split('_').pop() || `shot-${idx+1}`}</td>
-                                                  <td className="px-4 py-3">
-                                                    <div className="flex items-center gap-3">
-                                                      <img src={shot.thumbnail} alt="" className="w-8 h-5 object-cover rounded bg-black/40" referrerPolicy="no-referrer" />
-                                                      <span className="text-gray-200 truncate max-w-[150px]">{shot.name}</span>
-                                                    </div>
-                                                  </td>
-                                                  <td className="px-4 py-3 text-right font-mono text-gray-400">{startFrame}</td>
-                                                  <td className="px-4 py-3 text-right font-mono text-gray-400">{endFrame}</td>
-                                                  <td className="px-4 py-3 text-right font-mono text-emerald-500 font-medium">{frameCount}</td>
-                                                  <td className="px-4 py-3 text-center">
-                                                    <span className={cn(
-                                                      "inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold border",
-                                                      shot.status === '已完成' || shot.status === '已渲染' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
-                                                      shot.status === '进行中' ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-gray-500/10 text-gray-500 border-white/5"
-                                                    )}>
-                                                      {shot.status || '待处理'}
-                                                    </span>
-                                                  </td>
-                                                  <td className="px-4 py-3 text-right">
-                                                    <span className="text-[10px] text-gray-400 font-medium bg-white/5 px-2 py-0.5 rounded">
-                                                      {shot.type || 'N/A'}
-                                                    </span>
-                                                  </td>
-                                                </tr>
-                                              );
-                                            })}
-                                          </tbody>
-                                        </table>
-                                      </div>
-                                    )}
-
-                                    {shotsViewMode === 'board' && (
-                                      <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
-                                        {(['待处理', '进行中', '已渲染'] as const).map(status => (
-                                          <div key={status} className="flex-shrink-0 w-72 flex flex-col gap-3">
-                                            <div className="flex items-center justify-between px-2">
-                                              <div className="flex items-center gap-2">
-                                                <div className={cn(
-                                                  "w-2 h-2 rounded-full",
-                                                  status === '已渲染' ? "bg-emerald-500" :
-                                                  status === '进行中' ? "bg-blue-500" : "bg-gray-600"
-                                                )} />
-                                                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{status}</span>
-                                              </div>
-                                              <span className="text-[10px] font-mono text-gray-600 bg-black/20 px-1.5 py-0.5 rounded">
-                                                {selectedInspectorScene.shots.filter(s => (s.status === status) || (!s.status && status === '待处理') || (s.status === '已完成' && status === '已渲染')).length}
-                                              </span>
-                                            </div>
-                                            <div className="flex-1 space-y-3 p-2 bg-black/20 rounded-xl border border-white/5">
-                                              {selectedInspectorScene.shots
-                                                .filter(s => (s.status === status) || (!s.status && status === '待处理') || (s.status === '已完成' && status === '已渲染'))
-                                                .map((shot, idx) => (
-                                                  <div 
-                                                    key={shot.id}
-                                                    className="bg-[#1a1a1a] border border-[#222] p-3 rounded-lg hover:border-gray-600 transition-all cursor-pointer group"
-                                                  >
-                                                    <div className="flex gap-3">
-                                                      <img src={shot.thumbnail} alt="" className="w-16 h-10 object-cover rounded bg-black/40" referrerPolicy="no-referrer" />
-                                                      <div className="min-w-0 flex-1">
-                                                        <div className="text-[10px] font-bold text-gray-200 truncate mb-1">{shot.name}</div>
-                                                        <div className="flex items-center gap-2">
-                                                          <span className="text-[9px] text-blue-400 font-bold">#{idx + 1}</span>
-                                                          <span className="text-[9px] text-gray-500 font-medium px-1.5 py-0.5 bg-white/5 rounded lowercase tracking-tight">{shot.type}</span>
-                                                        </div>
-                                                      </div>
-                                                    </div>
-                                                  </div>
-                                                ))}
-                                            </div>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </motion.div>
-                                )}
-
                                 {activeInspectorTab === 'assets' && (
                             <motion.div
                               key="assets"
@@ -959,226 +707,415 @@ export default function App() {
                               exit={{ opacity: 0, y: -10 }}
                               className="space-y-6"
                             >
-                              {/* Asset Tab Header */}
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2 bg-[#1a1a1a] p-1 rounded-lg border border-[#333]">
-                                  <button 
-                                    onClick={() => setAssetViewMode('card')}
+                              {/* Asset Sub-tabs Selector */}
+                              <div className="flex bg-[#1a1a1a]/50 p-1 rounded-lg border border-white/5 self-start">
+                                {(['digital', 'tasks'] as const).map((tab) => (
+                                  <button
+                                    key={tab}
+                                    onClick={() => setAssetSubTab(tab)}
                                     className={cn(
-                                      "p-1.5 rounded transition-all",
-                                      assetViewMode === 'card' ? "bg-blue-600 text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
+                                      "px-4 py-1.5 rounded-md text-[10px] font-bold transition-all uppercase tracking-widest",
+                                      assetSubTab === tab 
+                                        ? "text-blue-400 bg-blue-500/10" 
+                                        : "text-gray-500 hover:text-gray-300"
                                     )}
-                                    title="卡片视图"
                                   >
-                                    <LayoutGrid size={14} />
+                                    {tab === 'digital' ? '数字资产' : '任务'}
                                   </button>
-                                  <button 
-                                    onClick={() => setAssetViewMode('list')}
-                                    className={cn(
-                                      "p-1.5 rounded transition-all",
-                                      assetViewMode === 'list' ? "bg-blue-600 text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
-                                    )}
-                                    title="列表视图"
-                                  >
-                                    <List size={14} />
-                                  </button>
-                                  <button 
-                                    onClick={() => setAssetViewMode('board')}
-                                    className={cn(
-                                      "p-1.5 rounded transition-all",
-                                      assetViewMode === 'board' ? "bg-blue-600 text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
-                                    )}
-                                    title="看板视图"
-                                  >
-                                    <Kanban size={14} />
-                                  </button>
-                                </div>
-
-                                <button 
-                                  className="flex items-center gap-2 px-4 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/20 rounded-lg text-xs font-bold transition-all"
-                                  onClick={() => setView('shot-manager')}
-                                >
-                                  <ExternalLink size={14} />
-                                  管理资产
-                                </button>
+                                ))}
                               </div>
 
-                              {assetViewMode === 'card' && (
-                                <div className="grid grid-cols-3 gap-6">
-                                  {(['场景', '角色', '道具', '特效', '元素'] as const).map(type => {
-                                    const typeAssets = selectedInspectorScene.assets.filter(a => a.type === type);
-                                    return (
-                                      <div key={type} className="space-y-3">
-                                        <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                          <Box size={12} />
-                                          {type}资产 ({typeAssets.length})
-                                        </h4>
-                                        <div className="space-y-2">
-                                          {typeAssets.length > 0 ? typeAssets.map(asset => (
-                                            <div 
+                              {assetSubTab === 'digital' && (
+                                <>
+                                  {/* Asset Tab Header */}
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2 bg-[#1a1a1a] p-1 rounded-lg border border-[#333]">
+                                      <button 
+                                        onClick={() => setAssetViewMode('card')}
+                                        className={cn(
+                                          "p-1.5 rounded transition-all",
+                                          assetViewMode === 'card' ? "bg-blue-600 text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
+                                        )}
+                                        title="卡片视图"
+                                      >
+                                        <LayoutGrid size={14} />
+                                      </button>
+                                      <button 
+                                        onClick={() => setAssetViewMode('list')}
+                                        className={cn(
+                                          "p-1.5 rounded transition-all",
+                                          assetViewMode === 'list' ? "bg-blue-600 text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
+                                        )}
+                                        title="列表视图"
+                                      >
+                                        <List size={14} />
+                                      </button>
+                                      <button 
+                                        onClick={() => setAssetViewMode('board')}
+                                        className={cn(
+                                          "p-1.5 rounded transition-all",
+                                          assetViewMode === 'board' ? "bg-blue-600 text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
+                                        )}
+                                        title="看板视图"
+                                      >
+                                        <Kanban size={14} />
+                                      </button>
+                                    </div>
+
+                                    <button 
+                                      className="flex items-center gap-2 px-4 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/20 rounded-lg text-xs font-bold transition-all"
+                                      onClick={() => setView('shot-manager')}
+                                    >
+                                      <ExternalLink size={14} />
+                                      管理资产库
+                                    </button>
+                                  </div>
+
+                                  {assetViewMode === 'card' && (
+                                    <div className="grid grid-cols-3 gap-6">
+                                      {(['场景', '角色', '道具', '特效', '元素'] as const).map(type => {
+                                        const typeAssets = selectedInspectorScene.assets.filter(a => a.type === type);
+                                        return (
+                                          <div key={type} className="space-y-3">
+                                            <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                              <Box size={12} />
+                                              {type}资产 ({typeAssets.length})
+                                            </h4>
+                                            <div className="space-y-2">
+                                              {typeAssets.length > 0 ? typeAssets.map(asset => (
+                                                <div 
+                                                  key={asset.id} 
+                                                  className="p-3 bg-black/30 border border-white/5 rounded-lg flex flex-col group hover:border-blue-500/30 transition-all cursor-pointer select-none"
+                                                  onDoubleClick={() => handleAssetDoubleClick(asset, selectedInspectorScene)}
+                                                >
+                                                  <div className="flex items-center justify-between mb-1">
+                                                    <div className="min-w-0 flex-1">
+                                                      <div className="flex items-center gap-2 mb-1">
+                                                        <span className="text-xs font-bold text-white truncate">{asset.name}</span>
+                                                        <span className="text-[9px] text-gray-500 font-mono bg-white/5 px-1 rounded">{asset.version}</span>
+                                                        <span className={cn(
+                                                          "text-[8px] px-1 py-0.5 rounded uppercase font-bold",
+                                                          asset.status === '已完成' ? "bg-emerald-500/20 text-emerald-400" :
+                                                          asset.status === '制作中' ? "bg-blue-500/20 text-blue-400" : "bg-gray-800 text-gray-500"
+                                                        )}>
+                                                          {asset.status}
+                                                        </span>
+                                                      </div>
+                                                      <div className="flex items-center gap-2 mb-2">
+                                                        <span className={cn(
+                                                          "text-[8px] px-1 py-0.5 rounded font-bold",
+                                                          asset.versionStatus === '已通过' ? "text-emerald-400 border border-emerald-500/30" :
+                                                          asset.versionStatus === '审核中' ? "text-blue-400 border border-blue-500/30" :
+                                                          asset.versionStatus === '已驳回' ? "text-red-400 border border-red-500/30" : "text-gray-500 border border-gray-500/30"
+                                                        )}>
+                                                          {asset.versionStatus}
+                                                        </span>
+                                                      </div>
+                                                    </div>
+                                                    <div className="ml-4 text-[10px] text-gray-500 font-mono shrink-0">{asset.progress}%</div>
+                                                  </div>
+                                                  <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-blue-500" style={{ width: `${asset.progress}%` }} />
+                                                  </div>
+                                                  <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity text-[8px] text-blue-400 font-bold uppercase tracking-tighter">
+                                                    双击查看详情
+                                                  </div>
+                                                </div>
+                                              )) : (
+                                                <div className="p-4 border border-dashed border-[#333] rounded-lg text-center">
+                                                  <span className="text-[10px] text-gray-600">暂无{type}资产</span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+
+                                  {assetViewMode === 'list' && (
+                                    <div className="bg-black/20 rounded-lg border border-white/5 overflow-x-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                                        <table className="w-full text-left border-collapse min-w-[1200px]">
+                                          <thead>
+                                            <tr className="bg-white/5 border-b border-white/10">
+                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[120px]">资产标识</th>
+                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[150px]">资产名称</th>
+                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[150px]">剧本资产名称</th>
+                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[120px]">资产昵称</th>
+                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[100px]">制作等级</th>
+                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[100px]">制作难度</th>
+                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[100px]">资产类型</th>
+                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[100px]">资产状态</th>
+                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[100px]">当前版本号</th>
+                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[100px]">制作步骤</th>
+                                              <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[80px]">操作</th>
+                                            </tr>
+                                          </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                          {selectedInspectorScene.assets.map((asset, idx) => (
+                                            <tr 
                                               key={asset.id} 
-                                              className="p-3 bg-black/30 border border-white/5 rounded-lg flex flex-col group hover:border-blue-500/30 transition-all cursor-pointer select-none"
+                                              className="hover:bg-white/5 transition-colors cursor-pointer select-none group"
                                               onDoubleClick={() => handleAssetDoubleClick(asset, selectedInspectorScene)}
                                             >
-                                              <div className="flex items-center justify-between mb-1">
-                                                <div className="min-w-0 flex-1">
-                                                  <div className="flex items-center gap-2 mb-1">
-                                                    <span className="text-xs font-bold text-white truncate">{asset.name}</span>
-                                                    <span className="text-[9px] text-gray-500 font-mono bg-white/5 px-1 rounded">{asset.version}</span>
-                                                    <span className={cn(
-                                                      "text-[8px] px-1 py-0.5 rounded uppercase font-bold",
-                                                      asset.status === '已完成' ? "bg-emerald-500/20 text-emerald-400" :
-                                                      asset.status === '制作中' ? "bg-blue-500/20 text-blue-400" : "bg-gray-800 text-gray-500"
-                                                    )}>
-                                                      {asset.status}
-                                                    </span>
+                                              <td className="px-4 py-4 text-xs font-mono text-blue-400">AST_{(100 + idx).toString()}</td>
+                                              <td className="px-4 py-4 text-xs font-bold text-white uppercase">{asset.name}</td>
+                                              <td className="px-4 py-4 text-xs text-gray-400 italic">SceneAsset_{asset.name.split('_')[0]}</td>
+                                              <td className="px-4 py-4 text-xs text-gray-300 font-medium">{asset.name.split('_').pop()}</td>
+                                              <td className="px-4 py-4">
+                                                <span className="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 font-bold">L{(idx % 3) + 1}</span>
+                                              </td>
+                                              <td className="px-4 py-4">
+                                                <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 font-bold">D{(idx % 4) + 1}</span>
+                                              </td>
+                                              <td className="px-4 py-4 text-xs text-gray-400">{asset.type}</td>
+                                              <td className="px-4 py-4 text-xs">
+                                                <span className={cn(
+                                                  "px-2 py-0.5 rounded-full font-bold text-[9px]",
+                                                  asset.status === '已完成' ? "bg-emerald-500/20 text-emerald-400" :
+                                                  asset.status === '制作中' ? "bg-blue-500/20 text-blue-400" : "bg-gray-800 text-gray-500"
+                                                )}>
+                                                  {asset.status}
+                                                </span>
+                                              </td>
+                                              <td className="px-4 py-4 text-xs text-gray-500 font-mono italic">{asset.version}</td>
+                                              <td className="px-4 py-4 text-xs text-gray-400 font-medium">模型/材质</td>
+                                              <td className="px-4 py-4">
+                                                <div className="flex items-center gap-2">
+                                                  <button className="p-1.5 hover:bg-white/10 rounded transition-colors text-blue-400">
+                                                    <ExternalLink size={12} />
+                                                  </button>
+                                                </div>
+                                              </td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  )}
+
+                                  {assetViewMode === 'board' && (
+                                    <div className="grid grid-cols-3 gap-6 h-full min-h-[300px]">
+                                      {(['待制作', '制作中', '已完成'] as const).map(status => {
+                                        const statusAssets = selectedInspectorScene.assets.filter(a => a.status === status);
+                                        return (
+                                          <div key={status} className="flex flex-col bg-black/20 rounded-xl border border-white/5 overflow-hidden">
+                                            <div className="px-4 py-3 bg-white/5 border-b border-white/5 flex items-center justify-between">
+                                              <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{status}</h4>
+                                              <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-gray-400">{statusAssets.length}</span>
+                                            </div>
+                                            <div className="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar">
+                                              {statusAssets.map(asset => (
+                                                <div 
+                                                  key={asset.id} 
+                                                  className="p-3 bg-[#1a1a1a] border border-white/5 rounded-lg shadow-lg hover:border-blue-500/30 transition-all cursor-pointer select-none group"
+                                                  onDoubleClick={() => handleAssetDoubleClick(asset, selectedInspectorScene)}
+                                                >
+                                                  <div className="flex items-center justify-between mb-1">
+                                                    <span className="text-xs font-bold text-white">{asset.name}</span>
+                                                    <span className="text-[9px] text-gray-500 font-mono">{asset.version}</span>
+                                                  </div>
+                                                  <div className="flex items-center justify-between mb-3">
+                                                    <span className="text-[8px] text-gray-500 uppercase">{asset.type}</span>
                                                   </div>
                                                   <div className="flex items-center gap-2 mb-2">
-                                                    <span className={cn(
-                                                      "text-[8px] px-1 py-0.5 rounded font-bold",
-                                                      asset.versionStatus === '已通过' ? "text-emerald-400 border border-emerald-500/30" :
-                                                      asset.versionStatus === '审核中' ? "text-blue-400 border border-blue-500/30" :
-                                                      asset.versionStatus === '已驳回' ? "text-red-400 border border-red-500/30" : "text-gray-500 border border-gray-500/30"
-                                                    )}>
-                                                      {asset.versionStatus}
-                                                    </span>
+                                                    <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                                                      <div className="h-full bg-blue-500" style={{ width: `${asset.progress}%` }} />
+                                                    </div>
+                                                    <span className="text-[9px] text-gray-500 font-mono">{asset.progress}%</span>
+                                                  </div>
+                                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity text-[8px] text-blue-400 font-bold uppercase tracking-tighter">
+                                                    双击查看详情
                                                   </div>
                                                 </div>
-                                                <div className="ml-4 text-[10px] text-gray-500 font-mono shrink-0">{asset.progress}%</div>
-                                              </div>
-                                              <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                                                <div className="h-full bg-blue-500" style={{ width: `${asset.progress}%` }} />
-                                              </div>
-                                              <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity text-[8px] text-blue-400 font-bold uppercase tracking-tighter">
-                                                双击查看详情
-                                              </div>
-                                            </div>
-                                          )) : (
-                                            <div className="p-4 border border-dashed border-[#333] rounded-lg text-center">
-                                              <span className="text-[10px] text-gray-600">暂无{type}资产</span>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              )}
-
-                              {assetViewMode === 'list' && (
-                                <div className="bg-black/20 rounded-lg border border-white/5 overflow-hidden">
-                                  <table className="w-full text-left border-collapse">
-                                    <thead>
-                                      <tr className="bg-white/5 border-b border-white/10">
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">资产名称</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">版本</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">版本状态</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">类型</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">状态</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">进度</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/5">
-                                      {selectedInspectorScene.assets.map(asset => (
-                                        <tr 
-                                          key={asset.id} 
-                                          className="hover:bg-white/5 transition-colors cursor-pointer select-none"
-                                          onDoubleClick={() => handleAssetDoubleClick(asset, selectedInspectorScene)}
-                                        >
-                                          <td className="px-4 py-3 text-xs font-bold text-white">
-                                            <div className="flex flex-col">
-                                              {asset.name}
-                                              <span className="text-[8px] text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">双击查看详情</span>
-                                            </div>
-                                          </td>
-                                          <td className="px-4 py-3 text-xs text-gray-500 font-mono">{asset.version}</td>
-                                          <td className="px-4 py-3">
-                                            <span className={cn(
-                                              "text-[9px] px-2 py-0.5 rounded-full font-bold",
-                                              asset.versionStatus === '已通过' ? "bg-emerald-500/10 text-emerald-400" :
-                                              asset.versionStatus === '审核中' ? "bg-blue-500/10 text-blue-400" :
-                                              asset.versionStatus === '已驳回' ? "bg-red-500/10 text-red-400" : "bg-gray-800 text-gray-500"
-                                            )}>
-                                              {asset.versionStatus}
-                                            </span>
-                                          </td>
-                                          <td className="px-4 py-3 text-xs text-gray-400">{asset.type}</td>
-                                          <td className="px-4 py-3">
-                                            <span className={cn(
-                                              "text-[9px] px-2 py-0.5 rounded-full uppercase font-bold",
-                                              asset.status === '已完成' ? "bg-emerald-500/20 text-emerald-400" :
-                                              asset.status === '制作中' ? "bg-blue-500/20 text-blue-400" : "bg-gray-800 text-gray-500"
-                                            )}>
-                                              {asset.status}
-                                            </span>
-                                          </td>
-                                          <td className="px-4 py-3">
-                                            <div className="flex items-center gap-3">
-                                              <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden min-w-[60px]">
-                                                <div className="h-full bg-blue-500" style={{ width: `${asset.progress}%` }} />
-                                              </div>
-                                              <span className="text-[10px] text-gray-500 font-mono">{asset.progress}%</span>
-                                            </div>
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              )}
-
-                              {assetViewMode === 'board' && (
-                                <div className="grid grid-cols-3 gap-6 h-full min-h-[300px]">
-                                  {(['待制作', '制作中', '已完成'] as const).map(status => {
-                                    const statusAssets = selectedInspectorScene.assets.filter(a => a.status === status);
-                                    return (
-                                      <div key={status} className="flex flex-col bg-black/20 rounded-xl border border-white/5 overflow-hidden">
-                                        <div className="px-4 py-3 bg-white/5 border-b border-white/5 flex items-center justify-between">
-                                          <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{status}</h4>
-                                          <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-gray-400">{statusAssets.length}</span>
-                                        </div>
-                                        <div className="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar">
-                                          {statusAssets.map(asset => (
-                                            <div 
-                                              key={asset.id} 
-                                              className="p-3 bg-[#1a1a1a] border border-white/5 rounded-lg shadow-lg hover:border-blue-500/30 transition-all cursor-pointer select-none group"
-                                              onDoubleClick={() => handleAssetDoubleClick(asset, selectedInspectorScene)}
-                                            >
-                                              <div className="flex items-center justify-between mb-1">
-                                                <span className="text-xs font-bold text-white">{asset.name}</span>
-                                                <span className="text-[9px] text-gray-500 font-mono">{asset.version}</span>
-                                              </div>
-                                              <div className="flex items-center justify-between mb-3">
-                                                <span className="text-[8px] text-gray-500 uppercase">{asset.type}</span>
-                                                <span className={cn(
-                                                  "text-[8px] px-1 py-0.5 rounded font-bold",
-                                                  asset.versionStatus === '已通过' ? "text-emerald-400 border border-emerald-500/20" :
-                                                  asset.versionStatus === '审核中' ? "text-blue-400 border border-blue-500/20" :
-                                                  asset.versionStatus === '已驳回' ? "text-red-400 border border-red-500/20" : "text-gray-500 border border-gray-500/20"
-                                                )}>
-                                                  {asset.versionStatus}
-                                                </span>
-                                              </div>
-                                              <div className="flex items-center gap-2 mb-2">
-                                                <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
-                                                  <div className="h-full bg-blue-500" style={{ width: `${asset.progress}%` }} />
+                                              ))}
+                                              {statusAssets.length === 0 && (
+                                                <div className="h-20 flex items-center justify-center border border-dashed border-white/5 rounded-lg">
+                                                  <span className="text-[10px] text-gray-600 italic">暂无资产</span>
                                                 </div>
-                                                <span className="text-[9px] text-gray-500 font-mono">{asset.progress}%</span>
-                                              </div>
-                                              <div className="opacity-0 group-hover:opacity-100 transition-opacity text-[8px] text-blue-400 font-bold uppercase tracking-tighter">
-                                                双击查看详情
-                                              </div>
+                                              )}
                                             </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </>
+                              )}
+
+                              {assetSubTab === 'tasks' && (
+                                <div className="space-y-6">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 bg-[#1a1a1a] p-1 rounded-lg border border-[#333]">
+                                      <button 
+                                        onClick={() => setTaskViewMode('list')}
+                                        className={cn(
+                                          "p-1.5 rounded transition-all",
+                                          taskViewMode === 'list' ? "bg-blue-600 text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
+                                        )}
+                                      >
+                                        <List size={14} />
+                                      </button>
+                                      <button 
+                                        onClick={() => setTaskViewMode('card')}
+                                        className={cn(
+                                          "p-1.5 rounded transition-all",
+                                          taskViewMode === 'card' ? "bg-blue-600 text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
+                                        )}
+                                      >
+                                        <LayoutGrid size={14} />
+                                      </button>
+                                      <button 
+                                        onClick={() => setTaskViewMode('board')}
+                                        className={cn(
+                                          "p-1.5 rounded transition-all",
+                                          taskViewMode === 'board' ? "bg-blue-600 text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
+                                        )}
+                                      >
+                                        <Kanban size={14} />
+                                      </button>
+                                    </div>
+                                    <button className="flex items-center gap-2 px-4 py-1.5 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 rounded-lg text-xs font-bold transition-all">
+                                      <Plus size={14} />
+                                      新增任务
+                                    </button>
+                                  </div>
+
+                                  {taskViewMode === 'list' && (
+                                    <div className="bg-black/20 rounded-xl border border-white/5 overflow-hidden">
+                                      <table className="w-full text-left border-collapse">
+                                        <thead>
+                                          <tr className="bg-white/5 border-b border-white/10">
+                                            <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">任务名称</th>
+                                            <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">资产名称</th>
+                                            <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">剧本资产名</th>
+                                            <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest font-mono">资产编码</th>
+                                            <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">负责人</th>
+                                            <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">状态</th>
+                                            <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">优先级</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                          {[
+                                            { id: 't1', title: '灯光烘焙', assetName: '主场景_A', scriptAssetName: 'MainHall', assetCode: 'ENV_01_A', assignee: '张三', status: '进行中', priority: '高' },
+                                            { id: 't2', title: '材质贴图更新', assetName: '角色_王二', scriptAssetName: 'Protagonist', assetCode: 'CHR_02_B', assignee: '李四', status: '待处理', priority: '中' },
+                                            { id: 't3', title: '模型拓扑优化', assetName: '道具_宝箱', scriptAssetName: 'MysteryBox', assetCode: 'PRP_05_C', assignee: '王五', status: '已预排', priority: '低' },
+                                            { id: 't4', title: '面部动画修正', assetName: '角色_小美', scriptAssetName: 'Sidekick', assetCode: 'CHR_03_A', assignee: '赵六', status: '进行中', priority: '高' },
+                                            { id: 't5', title: '骨骼绑定检查', assetName: '怪物_A', scriptAssetName: 'Monster_A', assetCode: 'CHR_08_D', assignee: '孙七', status: '待处理', priority: '中' },
+                                          ].map(task => (
+                                            <tr key={task.id} className="hover:bg-white/5 transition-colors group">
+                                              <td className="px-4 py-3 text-xs font-medium text-gray-200">{task.title}</td>
+                                              <td className="px-4 py-3 text-xs text-gray-400">{task.assetName}</td>
+                                              <td className="px-4 py-3 text-xs text-gray-400 italic">{task.scriptAssetName}</td>
+                                              <td className="px-4 py-3 text-xs text-gray-500 font-mono">{task.assetCode}</td>
+                                              <td className="px-4 py-3 text-xs text-gray-300">
+                                                <div className="flex items-center gap-2">
+                                                  <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center text-[9px] font-bold text-blue-400">
+                                                    {task.assignee[0]}
+                                                  </div>
+                                                  {task.assignee}
+                                                </div>
+                                              </td>
+                                              <td className="px-4 py-3 text-center">
+                                                <div className="flex items-center justify-center gap-2">
+                                                  <div className={cn(
+                                                    "w-1.5 h-1.5 rounded-full",
+                                                    task.status === '进行中' ? "bg-blue-500" :
+                                                    task.status === '待处理' ? "bg-gray-500" : "bg-emerald-500"
+                                                  )} />
+                                                  <span className="text-[10px] text-gray-400 font-bold">{task.status}</span>
+                                                </div>
+                                              </td>
+                                              <td className="px-4 py-3 text-center">
+                                                <span className={cn(
+                                                  "text-[10px] px-2 py-0.5 rounded-full font-bold",
+                                                  task.priority === '高' ? "bg-red-500/10 text-red-400" :
+                                                  task.priority === '中' ? "bg-blue-500/10 text-blue-400" : "bg-gray-800 text-gray-500"
+                                                )}>{task.priority}</span>
+                                              </td>
+                                            </tr>
                                           ))}
-                                          {statusAssets.length === 0 && (
-                                            <div className="h-20 flex items-center justify-center border border-dashed border-white/5 rounded-lg">
-                                              <span className="text-[10px] text-gray-600 italic">暂无资产</span>
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  )}
+
+                                  {taskViewMode === 'card' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                      {[
+                                        { id: 't1', title: '灯光烘焙', assetName: '主场景_A', scriptAssetName: 'MainHall', assetCode: 'ENV_01_A', assignee: '张三', priority: '高' },
+                                        { id: 't2', title: '材质贴图更新', assetName: '角色_王二', scriptAssetName: 'Protagonist', assetCode: 'CHR_02_B', assignee: '李四', priority: '中' },
+                                        { id: 't3', title: '模型拓扑优化', assetName: '道具_宝箱', scriptAssetName: 'MysteryBox', assetCode: 'PRP_05_C', assignee: '王五', priority: '低' },
+                                      ].map(task => (
+                                        <div key={task.id} className="p-4 bg-white/5 border border-white/5 rounded-xl hover:border-blue-500/30 transition-all group flex flex-col justify-between min-h-[160px]">
+                                          <div>
+                                            <div className="flex items-center justify-between mb-3">
+                                              <span className={cn(
+                                                "text-[8px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider",
+                                                task.priority === '高' ? "bg-red-500/20 text-red-400" :
+                                                task.priority === '中' ? "bg-blue-500/20 text-blue-400" : "bg-gray-800 text-gray-500"
+                                              )}>{task.priority}优先级</span>
+                                              <span className="text-[9px] text-gray-500 font-mono">{task.assetCode}</span>
                                             </div>
-                                          )}
+                                            <h5 className="text-xs font-bold text-gray-200 mb-2">{task.title}</h5>
+                                            <div className="space-y-1">
+                                              <div className="text-[10px] text-gray-400 flex items-center gap-1">
+                                                <Box size={10} className="text-blue-400" />
+                                                <span>资产: {task.assetName}</span>
+                                              </div>
+                                              <div className="text-[10px] text-gray-500 italic">
+                                                剧本: {task.scriptAssetName}
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                              <div className="w-5 h-5 rounded-full bg-blue-600 border border-[#0a0a0a] flex items-center justify-center text-[8px] font-bold">
+                                                {task.assignee[0]}
+                                              </div>
+                                              <span className="text-[10px] text-gray-400">{task.assignee}</span>
+                                            </div>
+                                            <Plus size={12} className="text-gray-600 hover:text-white cursor-pointer" />
+                                          </div>
                                         </div>
-                                      </div>
-                                    );
-                                  })}
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {taskViewMode === 'board' && (
+                                    <div className="grid grid-cols-3 gap-6 h-full min-h-[350px]">
+                                      {(['待处理', '进行中', '今日截止'] as const).map(status => (
+                                        <div key={status} className="flex flex-col bg-black/20 rounded-xl border border-white/5 overflow-hidden">
+                                          <div className="px-4 py-3 bg-white/5 border-b border-white/5 flex items-center justify-between">
+                                            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{status}</h4>
+                                            <Plus size={12} className="text-gray-500 hover:text-white cursor-pointer" />
+                                          </div>
+                                          <div className="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar">
+                                            {[
+                                              { id: 't1', title: '灯光烘焙', assetName: '主场景_A', priority: '高', assignee: '张三' },
+                                              { id: 't2', title: '材质贴图', assetName: '角色_王二', priority: '中', assignee: '李四' },
+                                              { id: 't3', title: '拓扑优化', assetName: '道具_宝箱', priority: '低', assignee: '王五' },
+                                            ].map(task => (
+                                              <div key={task.id} className="p-3 bg-[#1a1a1a] border border-white/5 rounded-lg shadow-sm hover:border-white/20 transition-all cursor-move">
+                                                <div className="flex items-center justify-between mb-2">
+                                                  <div className={cn(
+                                                    "w-8 h-1 rounded-full",
+                                                    task.priority === '高' ? "bg-red-500" :
+                                                    task.priority === '中' ? "bg-blue-500" : "bg-gray-600"
+                                                  )} />
+                                                  <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center text-[7px] font-bold text-blue-400">
+                                                    {task.assignee[0]}
+                                                  </div>
+                                                </div>
+                                                <h6 className="text-xs font-medium text-gray-200 mb-1">{task.title}</h6>
+                                                <p className="text-[10px] text-gray-500">{task.assetName}</p>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </motion.div>
@@ -1237,128 +1174,6 @@ export default function App() {
                                   </button>
                                 </div>
                               )}
-                            </motion.div>
-                          )}
-
-                          {activeInspectorTab === 'previz' && (
-                            <motion.div
-                              key="previz"
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -10 }}
-                              className="space-y-6"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                  <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-                                    <Zap size={20} />
-                                  </div>
-                                  <div>
-                                    <h4 className="text-sm font-bold text-white">场记</h4>
-                                    <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Script Supervisor Log</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <button className="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 rounded-lg text-xs font-bold transition-all border border-white/5">
-                                    导出清单
-                                  </button>
-                                </div>
-                              </div>
-
-                              <div className="bg-[#1a1a1a] border border-[#222] rounded-xl overflow-hidden flex flex-col">
-                                <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-                                  <table className="w-full text-left border-collapse min-w-[1600px]">
-                                    <thead>
-                                      <tr className="bg-[#222]/50 border-b border-[#222]">
-                                        <th className="sticky left-0 z-10 bg-[#1a1a1a] px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[60px]">序号</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[140px]">数据名</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[100px]">短名称</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[80px]">截图</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[60px]">Take</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[80px]">景别</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[100px]">状态</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[100px]">拍摄时间</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[100px]">渲染时间</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[80px]">焦距</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[80px]">焦段</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[80px]">光孔</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[80px]">色温</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[80px]">感光度</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[80px]">拍摄模式</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[100px]">摄影</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[100px]">导演</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[150px]">修改意见</th>
-                                        <th className="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest min-w-[150px]">备注</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-[#222]">
-                                      {selectedInspectorScene.shots.map((item, idx) => (
-                                        <tr key={idx} className="hover:bg-white/5 transition-colors group">
-                                          <td className="sticky left-0 z-10 bg-[#1a1a1a] group-hover:bg-[#222] px-4 py-4 transition-colors">
-                                            <span className="text-xs font-mono font-bold text-blue-400">{(idx + 1).toString().padStart(2, '0')}</span>
-                                          </td>
-                                          <td className="px-4 py-4 text-xs text-gray-400 truncate max-w-[140px] font-mono">{item.name}</td>
-                                          <td className="px-4 py-4 text-xs text-gray-300 font-bold">{item.shortName || `${item.name.split('_').pop()}`}</td>
-                                          <td className="px-4 py-4">
-                                            <div className="w-16 aspect-video bg-black rounded border border-white/10 overflow-hidden shadow-sm">
-                                              <img src={item.thumbnail} alt="Shot" className="w-full h-full object-cover opacity-80" referrerPolicy="no-referrer" />
-                                            </div>
-                                          </td>
-                                          <td className="px-4 py-4 text-xs font-mono text-gray-300">{item.take || '01'}</td>
-                                          <td className="px-4 py-4 text-xs text-gray-400">{item.shotSize || item.type}</td>
-                                          <td className="px-4 py-4">
-                                            <div className="flex items-center gap-2">
-                                              <div className={cn(
-                                                "w-1.5 h-1.5 rounded-full",
-                                                item.status === '已完成' || item.status === '已渲染' ? "bg-emerald-500" :
-                                                item.status === '进行中' ? "bg-blue-500" :
-                                                item.status === '待审核' ? "bg-yellow-500" : "bg-gray-600"
-                                              )} />
-                                              <span className="text-xs text-gray-300 whitespace-nowrap">{item.status || '待渲染'}</span>
-                                            </div>
-                                          </td>
-                                          <td className="px-4 py-4 text-xs text-gray-500 whitespace-nowrap">{item.shootingTime || '14:20:05'}</td>
-                                          <td className="px-4 py-4 text-xs text-gray-500 whitespace-nowrap">{item.renderTime || '02:45'}</td>
-                                          <td className="px-4 py-4 text-xs text-gray-400 font-mono">{item.focalLength}mm</td>
-                                          <td className="px-4 py-4 text-xs text-gray-400">{item.focalRange || 'Prime'}</td>
-                                          <td className="px-4 py-4 text-xs text-gray-400 font-mono">f/{item.aperture || '2.8'}</td>
-                                          <td className="px-4 py-4 text-xs text-gray-400 font-mono">{item.colorTemp || '5600'}K</td>
-                                          <td className="px-4 py-4 text-xs text-gray-400 font-mono">{item.iso}</td>
-                                          <td className="px-4 py-4 text-xs text-gray-400">{item.shootingMode || 'Manual'}</td>
-                                          <td className="px-4 py-4 text-xs text-gray-400 truncate font-medium">{item.photographer}</td>
-                                          <td className="px-4 py-4 text-xs text-gray-400 truncate font-medium">{item.director}</td>
-                                          <td className="px-4 py-4 text-xs text-gray-500 italic truncate max-w-[150px]">{item.comments || '-'}</td>
-                                          <td className="px-4 py-4 text-xs text-gray-500 truncate max-w-[150px]">{item.notes || '-'}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-
-                              <div className="grid grid-cols-3 gap-4">
-                                <div className="p-4 bg-[#1a1a1a] border border-[#222] rounded-xl space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">镜头总时长</span>
-                                    <Clock size={14} className="text-blue-400" />
-                                  </div>
-                                  <p className="text-xl font-bold text-white">12:45 <span className="text-xs text-gray-500 font-normal">min</span></p>
-                                </div>
-                                <div className="p-4 bg-[#1a1a1a] border border-[#222] rounded-xl space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">平均渲染时间</span>
-                                    <Zap size={14} className="text-yellow-400" />
-                                  </div>
-                                  <p className="text-xl font-bold text-white">4.2 <span className="text-xs text-gray-500 font-normal">min/shot</span></p>
-                                </div>
-                                <div className="p-4 bg-[#1a1a1a] border border-[#222] rounded-xl space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">资产就绪率</span>
-                                    <Box size={14} className="text-emerald-400" />
-                                  </div>
-                                  <p className="text-xl font-bold text-white">85 <span className="text-xs text-gray-500 font-normal">%</span></p>
-                                </div>
-                              </div>
                             </motion.div>
                           )}
                         </AnimatePresence>
